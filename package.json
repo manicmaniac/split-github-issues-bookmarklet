@@ -1,0 +1,15 @@
+{
+  "name": "split-github-issues-bookmarklet",
+  "version": "1.0.0",
+  "main": "index.js",
+  "devDependencies": {
+    "terser": "^5.37.0"
+  },
+  "scripts": {
+    "build": "( printf javascript: && terser -cm -- index.js ) > index.min.js"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "MIT",
+  "description": ""
+}
