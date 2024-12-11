@@ -1,3 +1,6 @@
+/// <reference path="./config.js" />
+/// <reference path="./index.d.ts" />
+
 /**
  * @param {boolean} usePost
  * @param {object} payload
