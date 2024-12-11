@@ -101,31 +101,23 @@ async function createSubIssues(owner, repo, number, specs) {
     });
     for (const edge of issue.projectItemsNext.edges) {
       const project = edge.node.project;
-      for (const [projectTitle, fields] of Object.entries(spec.projects)) {
-        if (project.title === projectTitle) {
-          for (const [fieldName, fieldValue] of Object.entries(fields)) {
-            if (project.field.name === fieldName) {
-              // TODO: Adapt to other field types.
-              if (project.field.__typename === 'ProjectV2SingleSelectField') {
-                const option = project.field.options.find((option) => option.name === fieldValue);
-                const itemId = subIssueData.repository.issue.projectItemsNext.edges.find((edge) => edge.node.project.id === project.id).node.id;
-                await graphql(true, {
-                  query: '8b296fae9f2499af49f72d6df68d6b5c',
-                  variables: {
-                    input: {
-                      itemId,
-                      fieldId: project.field.id,
-                      projectId: project.id,
-                      value: {
-                        singleSelectOptionId: option.id,
-                      }
-                    },
-                  },
-                });
-              }
-            }
-          }
-        }
+      const fieldValue = spec.projects?.[project.title]?.[project.field.name];
+      // TODO: Adapt to other field types.
+      if (fieldValue && project.field.__typename === 'ProjectV2SingleSelectField') {
+        const itemId = subIssueData.repository.issue.projectItemsNext.edges.find((edge) => edge.node.project.id === project.id).node.id;
+        await graphql(true, {
+          query: '8b296fae9f2499af49f72d6df68d6b5c',
+          variables: {
+            input: {
+              itemId,
+              fieldId: project.field.id,
+              projectId: project.id,
+              value: {
+                singleSelectOptionId: project.field.options.find((option) => option.name === fieldValue).id,
+              },
+            },
+          },
+        });
       }
     }
   }
