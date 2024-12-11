@@ -10,8 +10,14 @@
     },
   ];
 
+  /**
+   * @param {boolean} usePost
+   * @param {object} payload
+   * @returns {any}
+   */
   async function graphql(usePost, payload) {
     const url = new URL('https://github.com/_graphql');
+    /** @type {RequestInit} */
     const options = {
       headers: {
         accept: 'application/json',
@@ -25,6 +31,7 @@
     } else {
       url.searchParams.set('body', JSON.stringify(payload));
     }
+    /** @type {{data: any, errors: any[]}} */
     const response = (await (await fetch(url, options)).json());
     if (response.errors?.length > 0) {
       throw new Error(JSON.stringify(response.errors));
@@ -32,7 +39,14 @@
     return response.data;
   }
 
+  /**
+   * @param {string} owner
+   * @param {string} repo
+   * @param {number} number
+   * @param {typeof SPECS} specs
+   */
   async function createSubIssues(owner, repo, number, specs) {
+    /** @type IssueData */
     const issueData = await graphql(false, {
       query: 'd569a3ee4ed5313a5d887b2066bf2965',
       variables: {
@@ -46,6 +60,7 @@
     const repositoryId = issueData.repository.id;
     const issue = issueData.repository.issue;
 
+    /** @type LabelData */
     const labelData = await graphql(false, {
       query: '540103bb99869cfe09bca081f0e302a3',
       variables: {
@@ -66,7 +81,7 @@
         }
       }
       const labelIds = labels.flatMap((label) => spec.labelNames.includes(label.name) ? label.id : []);
-      const subIssueData = await graphql(true, {
+      await graphql(true, {
         query: 'ade91624c0c173721dc685806500c9eb',
         variables: {
           fetchParent: true,
