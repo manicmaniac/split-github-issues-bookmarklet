@@ -37,14 +37,14 @@ async function graphql(usePost, payload) {
  * @param {typeof SPECS} specs
  */
 async function createSubIssues(owner, repo, number, specs) {
-  /** @type IssueData */
+  /** @type IssueWithProjectsData */
   const issueData = await graphql(false, {
-    query: 'd569a3ee4ed5313a5d887b2066bf2965',
+    query: 'ce250e29c91f63a0c93e7650d1a5a332',
     variables: {
       owner,
       repo,
       number,
-      markAsRead: false,
+      allowedOwner: owner,
       useNewTimeline: true,
     },
   });
@@ -72,7 +72,8 @@ async function createSubIssues(owner, repo, number, specs) {
       }
     }
     const labelIds = labels.flatMap((label) => spec.labelNames.includes(label.name) ? label.id : []);
-    await graphql(true, {
+    /** @type CreateIssueData */
+    const createIssueData = await graphql(true, {
       query: 'ade91624c0c173721dc685806500c9eb',
       variables: {
         fetchParent: true,
@@ -85,6 +86,48 @@ async function createSubIssues(owner, repo, number, specs) {
         },
       },
     });
+    // FIXME: Wait until the issue is linked to the project.
+    await new Promise((resolve) => setTimeout(resolve, 3000));
+    /** @type IssueWithProjectsData */
+    const subIssueData = await graphql(false, {
+      query: 'ce250e29c91f63a0c93e7650d1a5a332',
+      variables: {
+        owner,
+        repo,
+        number: createIssueData.createIssue.issue.number,
+        allowedOwner: owner,
+        useNewTimeline: true,
+      },
+    });
+    for (const edge of issue.projectItemsNext.edges) {
+      const project = edge.node.project;
+      for (const [projectTitle, fields] of Object.entries(spec.projects)) {
+        if (project.title === projectTitle) {
+          for (const [fieldName, fieldValue] of Object.entries(fields)) {
+            if (project.field.name === fieldName) {
+              // TODO: Adapt to other field types.
+              if (project.field.__typename === 'ProjectV2SingleSelectField') {
+                const option = project.field.options.find((option) => option.name === fieldValue);
+                const itemId = subIssueData.repository.issue.projectItemsNext.edges.find((edge) => edge.node.project.id === project.id).node.id;
+                await graphql(true, {
+                  query: '8b296fae9f2499af49f72d6df68d6b5c',
+                  variables: {
+                    input: {
+                      itemId,
+                      fieldId: project.field.id,
+                      projectId: project.id,
+                      value: {
+                        singleSelectOptionId: option.id,
+                      }
+                    },
+                  },
+                });
+              }
+            }
+          }
+        }
+      }
+    }
   }
 }
 
