@@ -5,7 +5,7 @@ A bookmarklet to split a GitHub issue into sub-issues with one click.
 ## Installation
 
 1. Clone this repository.
-2. Edit `SPECS` in index.js as you like.
+2. Edit `SPECS` in config.js as you like.
 3. Run `npm install && npm run build`
 4. Copy all the contents of ./index.min.js to clipboard.
 5. Open Chrome and create new bookmark on bookmark bar.

@@ -6,7 +6,7 @@
     "terser": "^5.37.0"
   },
   "scripts": {
-    "build": "( printf javascript: && terser -cm -- index.js ) > index.min.js"
+    "build": "( printf javascript: && terser -cem -- config.js index.js ) > index.min.js"
   },
   "keywords": [],
   "author": "",
